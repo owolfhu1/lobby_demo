@@ -25,12 +25,16 @@
 
     <div class="container">
 
+        <br/><br/>
+
         <div class="row">
 
             <!-- first col -->
             <div class="col-sm-4">
 
                 <div id="chat_stuff">
+
+                    <h1>Global chat</h1>
 
                     <!-- chat body -->
                     <div id="chat_body" class="well" style="height: 300px;"></div>
@@ -64,6 +68,24 @@
 
                 </div>
 
+                <div id="room_chat_container">
+
+                    <h3>room chat</h3>
+
+                    <!-- room chat body -->
+                    <div id="room_chat" class="well" style="height: 200px;"></div>
+                    <!-- room chat body -->
+
+                    <!-- room chat input -->
+                    <input id="room_chat_input" class="form-control" placeholder="chat with your room here">
+                    <!-- room chat input -->
+
+                    <!-- room chat button -->
+                    <button id="room_chat_button" class="btn btn-primary">send chat to room</button>
+                    <!-- room chat button -->
+
+                </div>
+
             </div>
             <!-- second col -->
 
@@ -81,9 +103,14 @@
     let chat_button = document.getElementById('chat_button');
     let chat_stuff = document.getElementById('chat_stuff');
     let main_area = document.getElementById('main_area');
+    let room_chat_container = document.getElementById('room_chat_container');
+    let room_chat = document.getElementById('room_chat');
+    let room_chat_input = document.getElementById('room_chat_input');
+    let room_chat_button = document.getElementById('room_chat_button');
 
     //makes so you can't see chat stuff before logging in
     chat_stuff.style.display = 'none';
+    room_chat_container.style.display = 'none';
 
     //this is your connection to the server
     let socket = io();
@@ -135,6 +162,9 @@
     //command from server to set up lobby for user
     socket.on('lobby', roomMap => {
 
+        //turn off room chat (for if you just left a room)
+        room_chat_container.style.display = 'none';
+
         //add make new room button
         main_area.innerHTML = '<button id="new_room" class="btn btn-block btn-lg btn-danger">make a new room</button><br/>';
 
@@ -169,16 +199,44 @@
     //command from server to set up display room to user
     socket.on('room', room => {
 
+        //show room chat
+        room_chat_container.style.display = 'inherit';
+
         let memberHTML = '';
 
+        //adds html for each member
         for (let member in room.members)
             memberHTML += room.members[member] + ' ';
 
-
+        //add html to main_area
         main_area.innerHTML = `
-            <h1>You are in ${room.host}'s room</h1>
-            members are: ${memberHTML}
+            <div class="well">
+                <h1>You are in ${room.host}'s room</h1>
+                members<br/>
+                ${memberHTML}
+                <button id="leave" class="btn btn-danger">leave room</button>
+            </div>
         `;
+
+        //activate leave room button
+        document.getElementById('leave').addEventListener('click', () => socket.emit('leave'));
+
+    });
+
+    //send room chat
+    room_chat_button.addEventListener('click', () => {
+        socket.emit('room_chat', `<p>${name}: ${room_chat_input.value}</p>`);
+        room_chat_input.value = '';
+    });
+
+    //receive room chat
+    socket.on('room_chat', text => {
+
+        //add text to chat
+        room_chat.innerHTML += text;
+
+        //scroll to bottom of chat
+        room_chat.scrollTop = room_chat.scrollHeight;
 
     });
 

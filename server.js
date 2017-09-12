@@ -18,6 +18,12 @@ function Room(host, roomId) {
     this.members = [];
 }
 
+function User(name, userId) {
+    this.name = name;
+    this.id = userId;
+    roomId = 'none';
+}
+
 io.on('connection', socket => {
     
     let userId = socket.id;
@@ -32,7 +38,7 @@ io.on('connection', socket => {
             name = username;
             
             //put user in userMap at key username
-            userMap[name] = userId;
+            userMap[name] = new User(name, userId);
             lobbyMap[name] = userId;
             
             //sends command login back with name
@@ -52,7 +58,7 @@ io.on('connection', socket => {
         for (let username in userMap) {
             
             //send that user the chat message
-            io.to(userMap[username]).emit('chat', message);
+            io.to(userMap[username].id).emit('chat', message);
             
         }
         
@@ -73,7 +79,10 @@ io.on('connection', socket => {
         //put room in roomMap
         roomMap[room.id] = room;
         
-        //send roomMap to peole in lobby
+        //save roomId to user object
+        userMap[name].roomId = room.id;
+        
+        //send roomMap to people in lobby
         for (let user in lobbyMap)
             io.to(lobbyMap[user]).emit('lobby', roomMap);
         
@@ -83,25 +92,104 @@ io.on('connection', socket => {
     });
     
     //client tries to join a room
-    socket.on('join', roomId => {
+    socket.on('join', id => {
         
         //get the room
-        let room = roomMap[roomId];
+        let room = roomMap[id];
         
         //put yourself in it
         room.members.push(name);
     
         //take yourself out of lobby
         delete lobbyMap[name];
+    
+        //save roomId to user object
+        userMap[name].roomId = room.id;
         
         //send room to members
         for (let member in room.members)
-            io.to(userMap[room.members[member]]).emit('room', room);
+            io.to(userMap[room.members[member]].id).emit('room', room);
         
         //send lobby to everyone in lobby
         for (let user in lobbyMap)
             io.to(lobbyMap[user]).emit('lobby', roomMap);
         
     });
+    
+    //receive room chat from client
+    socket.on('room_chat', text => {
+       
+        //get the user's room
+        let room = roomMap[userMap[name].roomId];
+        
+        //send chat to room members
+        for (let member in room.members)
+            io.to(userMap[room.members[member]].id).emit('room_chat', text);
+        
+    });
+    
+    //when a user wants to leave a room
+    socket.on('leave', () => {
+        
+        let id = userMap[name].roomId
+        
+        //get room
+        let room = roomMap[id];
+        
+        //if you are only member
+        if (room.members.length === 1) {
+            
+            //remove room from roomMap
+            delete roomMap[id];
+            
+            //remove roomId from user obj
+            userMap[name].roomId = 'none';
+            
+            //add yourself to lobby
+            lobbyMap[name] = userId;
+            
+        }
+        //if you are the host
+        else if (room.host === name) {
+            
+            //add all members to lobby and remove their roomId
+            for (let member in room.members) {
+                userMap[room.members[member]].roomId = 'none';
+                lobbyMap[room.members[member]] = userMap[room.members[member]].id;
+            }
+            
+            //remove room from roomMap
+            delete roomMap[id];
+            
+        }
+        //if you are just a regular member
+        else {
+    
+            //remove user from room
+            room.members.splice(room.members.indexOf(name), 1);
+            
+            //add yourself to lobby
+            lobbyMap[name] = userId;
+            
+            //remove roomId from user obj
+            userMap[name].roomId = 'none';
+            
+        }
+        
+        //if the room still exists
+        if (id in roomMap) {
+            
+            //send room to members
+            for (let member in room.members)
+                io.to(userMap[room.members[member]].id).emit('room', room);
+            
+        }
+    
+        //send roomMap to people in lobby
+        for (let user in lobbyMap)
+            io.to(lobbyMap[user]).emit('lobby', roomMap);
+        
+    });
+    
     
 });
