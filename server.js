@@ -21,7 +21,7 @@ function Room(host, roomId) {
 function User(name, userId) {
     this.name = name;
     this.id = userId;
-    roomId = 'none';
+    this.roomId = 'none';
 }
 
 io.on('connection', socket => {
@@ -131,7 +131,7 @@ io.on('connection', socket => {
     //when a user wants to leave a room
     socket.on('leave', () => {
         
-        let id = userMap[name].roomId
+        let id = userMap[name].roomId;
         
         //get room
         let room = roomMap[id];
@@ -191,5 +191,55 @@ io.on('connection', socket => {
         
     });
     
+    socket.on('disconnect', () => {
+        
+        //check if user logged in
+        if (name in userMap) {
+    
+            //get the user
+            let user = userMap[name];
+    
+            //if user is in a room
+            if (user.roomId !== 'none') {
+        
+                let room = roomMap[user.roomId];
+        
+                //if user is host
+                if (name === room.host) {
+            
+                    //add all members to lobby and remove their roomId
+                    for (let member in room.members) {
+                        userMap[room.members[member]].roomId = 'none';
+                        lobbyMap[room.members[member]] = userMap[room.members[member]].id;
+                    }
+            
+                    //delete room
+                    delete roomMap[room.id];
+            
+                } else {
+            
+                    //otherwise just remove yourself from room and send room to members
+                    room.members.splice(room.members.indexOf(name), 1);
+                    for (let member in room.members)
+                        io.to(userMap[room.members[member]].id).emit('room', room);
+            
+                }
+        
+            }
+    
+            //if user is in lobby, remove them
+            if (name in lobbyMap)
+                delete lobbyMap[name];
+    
+            //send roomMap to people in lobby
+            for (let x in lobbyMap)
+                io.to(lobbyMap[x]).emit('lobby', roomMap);
+    
+            //delete from userMap
+            delete userMap[name];
+            
+        }
+        
+    });
     
 });
