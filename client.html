@@ -132,6 +132,56 @@
 
     });
 
+    //command from server to set up lobby for user
+    socket.on('lobby', roomMap => {
+
+        //add make new room button
+        main_area.innerHTML = '<button id="new_room" class="btn btn-block btn-lg btn-danger">make a new room</button><br/>';
+
+        //make rooms
+        let roomHTML = '';
+        for (let room in roomMap) {
+            let members = '';
+            for (let x = 0; x < roomMap[room].members; x++)
+                members += roomMap[room][x] + ' ';
+            roomHTML += `
+                <div class="well">
+                    <h2>${roomMap[room].host}'s Room</h2>
+                    members: ${members}
+                    <button id="${room}" class="btn btn-success">join room</button>
+                </div>
+            `;
+        }
+
+        //add rooms to DOM
+        main_area.innerHTML += roomHTML;
+
+        //turn on join buttons
+        for (let room in roomMap) {
+            document.getElementById(room).addEventListener('click', () => socket.emit('join', room));
+        }
+
+        //turn on new room button
+        document.getElementById('new_room').addEventListener('click', () => socket.emit('new'));
+
+    });
+
+    //command from server to set up display room to user
+    socket.on('room', room => {
+
+        let memberHTML = '';
+
+        for (let member in room.members)
+            memberHTML += room.members[member] + ' ';
+
+
+        main_area.innerHTML = `
+            <h1>You are in ${room.host}'s room</h1>
+            members are: ${memberHTML}
+        `;
+
+    });
+
 </script>
 
 </body>
