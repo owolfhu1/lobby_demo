@@ -172,12 +172,12 @@
         let roomHTML = '';
         for (let room in roomMap) {
             let members = '';
-            for (let x = 0; x < roomMap[room].members; x++)
-                members += roomMap[room][x] + ' ';
+            for (let x = 0; x < roomMap[room].members.length; x++)
+                members += roomMap[room].members[x] + ' ';
             roomHTML += `
                 <div class="well">
                     <h2>${roomMap[room].host}'s Room</h2>
-                    members: ${members}
+                    members: ${members} <br/>
                     <button id="${room}" class="btn btn-success">join room</button>
                 </div>
             `;
@@ -206,13 +206,15 @@
 
         //adds html for each member
         for (let member in room.members)
-            memberHTML += room.members[member] + ' ';
+            memberHTML += `<p>${parseInt(member) + 1}) ${room.members[member]} ${
+            name === room.host && room.members[member] !== name ?
+                `<button id="kick_${room.members[member]}" class="btn btn-danger">kick</button>` : ''}</p>`;
 
         //add html to main_area
         main_area.innerHTML = `
             <div class="well">
                 <h1>You are in ${room.host}'s room</h1>
-                members<br/>
+                <p><b>members</b></p>
                 ${memberHTML}
                 <button id="leave" class="btn btn-danger">leave room</button>
             </div>
@@ -220,6 +222,20 @@
 
         //activate leave room button
         document.getElementById('leave').addEventListener('click', () => socket.emit('leave'));
+
+        //if you are host, activate kick buttons
+        if (room.host === name) {
+
+            for (let member in room.members) {
+
+                if (room.members[member] !== name)
+                    document.getElementById('kick_' + room.members[member]).addEventListener('click', () => {
+                        socket.emit('kick', room.members[member]);
+                    });
+
+            }
+
+        }
 
     });
 

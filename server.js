@@ -191,6 +191,30 @@ io.on('connection', socket => {
         
     });
     
+    socket.on('kick', person => {
+        
+        //get the room
+        let room = roomMap[userMap[name].roomId];
+        
+        //remove the member
+        room.members.splice(room.members.indexOf(person), 1)
+        
+        //put them in lobby
+        lobbyMap[person] = userMap[person].id;
+        
+        //remove their roomId
+        userMap[person].roomId = 'none';
+    
+        //send roomMap to people in lobby
+        for (let user in lobbyMap)
+            io.to(lobbyMap[user]).emit('lobby', roomMap);
+    
+        //send room to members
+        for (let member in room.members)
+            io.to(userMap[room.members[member]].id).emit('room', room);
+        
+    });
+    
     socket.on('disconnect', () => {
         
         //check if user logged in
