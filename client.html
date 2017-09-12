@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Lobby Demo</title>
+
+    <!-- socket io -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- socket io -->
+
+    <!-- jquery -->
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <!-- jquery -->
+
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- bootstrap -->
+
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="row">
+
+            <!-- first col -->
+            <div class="col-sm-4">
+
+                <div id="chat_stuff">
+
+                    <!-- chat body -->
+                    <div id="chat_body" class="well" style="height: 300px;"></div>
+                    <!-- chat body -->
+
+                    <!-- chat input -->
+                    <input id="chat_input" type="text" class="form-control" placeholder="chat here"/>
+                    <!-- chat input -->
+
+                    <!-- chat button -->
+                    <button id="chat_button" class="btn btn-warning">send chat</button>
+                    <!-- chat button -->
+
+                </div>
+
+            </div>
+            <!-- first col -->
+
+            <!-- second col -->
+            <div class="col-sm-8">
+
+                <div id="main_area">
+
+                <!-- username field -->
+                <input id="login_input" type="text" placeholder="pick a user name"/>
+                <!-- username field -->
+
+                <!-- login button -->
+                <button id="login_button" class="btn btn-success btn-lg">login</button>
+                <!-- login button -->
+
+                </div>
+
+            </div>
+            <!-- second col -->
+
+        </div>
+    </div>
+<script>
+
+    let name = 'error';
+
+    //get elements
+    let chat_body = document.getElementById('chat_body');
+    let chat_input = document.getElementById('chat_input');
+    let login_input = document.getElementById('login_input');
+    let login_button = document.getElementById('login_button');
+    let chat_button = document.getElementById('chat_button');
+    let chat_stuff = document.getElementById('chat_stuff');
+    let main_area = document.getElementById('main_area');
+
+    //makes so you can't see chat stuff before logging in
+    chat_stuff.style.display = 'none';
+
+    //this is your connection to the server
+    let socket = io();
+
+    //when login_button is clicked
+    login_button.addEventListener('click', () => {
+
+        //send the command 'login' with data from login_input to the server
+        socket.emit('login', login_input.value);
+
+    });
+
+    //when server gives command 'login' with variable username
+    socket.on('login', username => {
+
+        //set name value to name you logged in with
+        name = username;
+
+        //clear login area html
+        main_area.innerHTML = '';
+
+        //make it so you can now see the chat stuff
+        chat_stuff.style.display = 'inherit';
+
+    });
+
+    //when chat_button is clicked
+    chat_button.addEventListener('click', () => {
+
+        //send chat to server
+        socket.emit('chat', `<p>${name}: ${chat_input.value}</p>`);
+
+        //clear chat_input
+        chat_input.value = '';
+
+    });
+
+    //when server sends chat to client
+    socket.on('chat', message => {
+
+        //add message to chat_body
+        chat_body.innerHTML += message;
+
+        //scroll to bottom of chat
+        chat_body.scrollTop = chat_body.scrollHeight;
+
+    });
+
+</script>
+
+</body>
+</html>
