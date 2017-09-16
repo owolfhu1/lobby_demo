@@ -20,6 +20,15 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <!-- bootstrap -->
 
+    <style>
+
+        .chat {
+            overflow-y: scroll;
+            height: 250px;
+        }
+
+    </style>
+
 </head>
 <body>
 
@@ -37,7 +46,7 @@
                     <h1>Global chat</h1>
 
                     <!-- chat body -->
-                    <div id="chat_body" class="well" style="height: 300px;"></div>
+                    <div id="chat_body" class="well chat"></div>
                     <!-- chat body -->
 
                     <!-- chat input -->
@@ -73,7 +82,7 @@
                     <h3>room chat</h3>
 
                     <!-- room chat body -->
-                    <div id="room_chat" class="well" style="height: 200px;"></div>
+                    <div id="room_chat" class="well chat"></div>
                     <!-- room chat body -->
 
                     <!-- room chat input -->

@@ -7,7 +7,7 @@
   - Join existing rooms.
   - Host can remove users from their room.
   - Room is removed when host leaves room.
-  - Handles users disconnecting diffrently depending on if user is:
+  - Handles users disconnecting differently depending on if user is:
       - in a room.
       - a host.
       - in main lobby.
