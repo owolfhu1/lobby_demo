@@ -1,7 +1,7 @@
 # Browser chat lobby demo using: node.js, socket.io, express 
 
 # This is a demo of a basic chat lobby with features:
-  - Login to lobby by giving it a name.
+  - Login to lobby by entering a name.
   - Live chat with all logged in users.
   - Create a room for private chat.
   - Join existing rooms.
@@ -21,4 +21,5 @@
   - Navigate to folder project is cloned to in terminal.
   - Enter 'node server.js'
       - The terminal should say: "Listening on *:3000"
-  - Navigate to local host 3000 in a browser. (open in multiple windows to see how the clients interact with eachother)
+  - Navigate to local host 3000 in a browser. 
+      - Open in multiple windows to see how the clients interact with eachother.
