@@ -1,6 +1,6 @@
-# Chat lobby demo using: node.js, socket.io, express 
+# Browser chat lobby demo using: node.js, socket.io, express 
 
-This is a demo of a basic chat lobby with features:
+# This is a demo of a basic chat lobby with features:
   - Login to lobby by giving it a name.
   - Live chat with all logged in users.
   - Create a room for private chat.
